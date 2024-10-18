@@ -1,50 +1,149 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+  <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Merriweather&family=Roboto&display=swap"
+      rel="stylesheet"
+    />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="./public/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="./public/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="./public/favicon-16x16.png"
+    />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Modern PWA Recipe Application" />
 
-<head>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Merriweather&family=Roboto&display=swap" rel="stylesheet" />
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="apple-touch-icon" sizes="180x180" href="./public/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="./public/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="./public/favicon-16x16.png">
-  <meta name="theme-color" content="#000000" />
-  <meta name="description" content="Modern PWA Recipe Application" />
-
-  <title>TastyTrails</title>
-</head>
-
-<body>
-  <div id="root"></div>
-  <script type="module" src="./src/main.jsx"></script>
-  
-
-  <script type="module">
-    const images = document.querySelectorAll('img');
-
-const lazyLoad = target => {
-  const io = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const img = entry.target;
-        const src = img.getAttribute('data-src');
-
-        img.setAttribute('src', src);
-        observer.disconnect();
+    <title>TastyTrails</title>
+    <>
+    <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        background: #ffffff;
+        overflow: hidden;
       }
-    });
-  });
 
-  io.observe(target);
-};
+      .cursor-trail {
+        width: 20px;
+        height: 20px;
+        background: linear-gradient(45deg, #833ab4, #fd8271);
+        position: fixed;
+        border-radius: 50%;
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+        transition: all 0.15s ease;
+        z-index: -1;
+        opacity: 0.6;
+        filter: blur(2px);
+      }
 
-images.forEach(image => {
-  lazyLoad(image);
-});
+      .trail {
+        position: fixed;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #833ab4, #fd8271);
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+        transition: width 0.3s, height 0.3s, opacity 0.3s;
+        opacity: 0.4;
+        filter: blur(1px);
+        z-index: -1;
+      }
+    </style>
+  </head>
 
-  </script>
-</body>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./src/main.jsx"></script>
 
+    <script type="module">
+      const images = document.querySelectorAll("img");
+
+      const lazyLoad = (target) => {
+        const io = new IntersectionObserver((entries, observer) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const img = entry.target;
+              const src = img.getAttribute("data-src");
+
+              img.setAttribute("src", src);
+              observer.disconnect();
+            }
+          });
+        });
+
+        io.observe(target);
+      };
+
+      images.forEach((image) => {
+        lazyLoad(image);
+      });
+    </script>
+    <div class="cursor-trail"></div>
+
+    <script>
+      const cursor = document.querySelector(".cursor-trail");
+      const maxTrails = 8;
+      let trails = [];
+
+      function createTrailElement() {
+        const trail = document.createElement("div");
+        trail.className = "trail";
+        document.body.appendChild(trail);
+        return trail;
+      }
+
+      document.addEventListener("mousemove", (e) => {
+        // Update main cursor trail
+        cursor.style.left = e.clientX + "px";
+        cursor.style.top = e.clientY + "px";
+
+        // Create new trail element
+        const trail = createTrailElement();
+        trail.style.left = e.clientX + "px";
+        trail.style.top = e.clientY + "px";
+
+        // Add to trails array
+        trails.push({
+          element: trail,
+          createdAt: Date.now(),
+        });
+
+        // Remove old trails
+        if (trails.length > maxTrails) {
+          const oldTrail = trails.shift();
+          oldTrail.element.remove();
+        }
+
+        // Fade out trails
+        trails.forEach((trail, index) => {
+          const age = Date.now() - trail.createdAt;
+          const opacity = Math.max(0, 1 - age / 500);
+          trail.element.style.opacity = opacity * 0.4;
+
+          // Slight increase in size as they fade
+          const size = 15 + age / 60;
+          trail.element.style.width = size + "px";
+          trail.element.style.height = size + "px";
+        });
+      });
+    </script>
+  </body>
 </html>
